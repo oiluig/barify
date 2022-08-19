@@ -130,7 +130,7 @@ func add_gzip_compression(text string) string {
 
 	encodedText := base64.StdEncoding.EncodeToString(b.Bytes())
 
-	gzip_compressed := "<!doctype html><body><script>let e=\"" + encodedText + "\";for(var n=window.atob(e),o=n.length,t=new Uint8Array(o),r=0;r<o;r++)t[r]=n.charCodeAt(r);const c=new DecompressionStream(\"gzip\"),a=c.writable.getWriter();a.write(t.buffer),a.close(),new Response(c.readable).arrayBuffer().then(function(e){return(new TextDecoder).decode(e)}).then(e=>{document.open(),document.write(e),document.close()}).catch(e=>{console.log(e)})</script>"
+	gzip_compressed := "<!doctype html><script>let e=\"" + encodedText + "\";for(var n=window.atob(e),o=n.length,t=new Uint8Array(o),r=0;r<o;r++)t[r]=n.charCodeAt(r);const c=new DecompressionStream(\"gzip\"),a=c.writable.getWriter();a.write(t.buffer),a.close(),new Response(c.readable).arrayBuffer().then(function(e){return(new TextDecoder).decode(e)}).then(e=>{document.open(),document.write(e),document.close()}).catch(e=>{console.log(e)})</script>"
 
 	return gzip_compressed
 }
