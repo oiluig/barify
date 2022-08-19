@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"compress/gzip"
 	"encoding/base64"
 	"fmt"
 	"os"
@@ -96,10 +98,12 @@ func compile(path string) {
 	packed_html, _ := doc.Html()
 	fmt.Print("minifing index.html: " + strconv.Itoa(len(packed_html)) + " -> ")
 	minified := do_min("text/html", packed_html)
+
+	minified = add_gzip_compression(minified)
+
 	fmt.Println(len(minified))
 
 	os.WriteFile("compiled.html", []byte(minified), 0644)
-
 	generate_qr(minified)
 }
 
@@ -116,6 +120,19 @@ func do_min(mediatype string, text string) string {
 	}
 
 	return s
+}
+
+func add_gzip_compression(text string) string {
+	var b bytes.Buffer
+	w := gzip.NewWriter(&b)
+	w.Write([]byte(text))
+	w.Close()
+
+	encodedText := base64.StdEncoding.EncodeToString(b.Bytes())
+
+	gzip_compressed := "<!doctype html><body><script>let e=\"" + encodedText + "\";for(var n=window.atob(e),o=n.length,t=new Uint8Array(o),r=0;r<o;r++)t[r]=n.charCodeAt(r);const c=new DecompressionStream(\"gzip\"),a=c.writable.getWriter();a.write(t.buffer),a.close(),new Response(c.readable).arrayBuffer().then(function(e){return(new TextDecoder).decode(e)}).then(e=>{document.open(),document.write(e),document.close()}).catch(e=>{console.log(e)})</script>"
+
+	return gzip_compressed
 }
 
 func generate_qr(text string) {
