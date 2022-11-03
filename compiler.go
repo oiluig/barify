@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -43,6 +44,10 @@ func compile(path string) {
 
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(string(file)))
 
+	doc.Find("body").Each(func(i int, s *goquery.Selection) {
+		map_css(s)
+	})
+
 	var styles []string
 	doc.Find("link[rel=\"stylesheet\"]").Each(func(i int, s *goquery.Selection) {
 		if attr, ex := s.Attr("href"); ex {
@@ -53,21 +58,37 @@ func compile(path string) {
 			}
 
 			file_string := string(file)
-			fmt.Print(len(file_string))
+			
+			fmt.Println(css_map);
+
+			css_map_list := make([]string, 0, len(css_map))
+
+			for k := range css_map {
+				css_map_list = append(css_map_list, k)
+			}
+
+			sort.Slice(css_map_list, func(i, j int) bool {
+				return len(css_map_list[i]) > len(css_map_list[j])
+			})
+
+			for _, n := range css_map_list {
+				file_string = strings.ReplaceAll(file_string, "."+n, "."+css_map[n])
+			}
+			
 			minified := do_min("text/css", file_string)
 
 			s.Remove()
 
-			styles = append(styles, minified)
+			fmt.Print(len(file_string))
 			fmt.Print(" -> ")
 			fmt.Println(len(minified))
+			styles = append(styles, minified)
 		}
 	})
 
 	doc.Find("head").AppendHtml("<style>" + do_min("text/css", strings.Join(styles, "\n")) + "</style>")
 
 	var scripts []string
-
 	doc.Find("script").Each(func(i int, s *goquery.Selection) {
 		fmt.Print("js found: ")
 
@@ -87,20 +108,21 @@ func compile(path string) {
 
 		s.Remove()
 
-		fmt.Print(len(js_file))
 		minified := do_min("text/javascript", js_file)
+		fmt.Print(len(js_file))
 		fmt.Print(" -> ")
 		fmt.Println(len(minified))
 		scripts = append(scripts, minified)
 	})
 
 	doc.Find("body").AppendHtml("<script>" + do_min("text/javascript", strings.Join(scripts, "\n")) + "</script>")
+	
 	packed_html, _ := doc.Html()
-	fmt.Print("minifing index.html: " + strconv.Itoa(len(packed_html)) + " -> ")
 	minified := do_min("text/html", packed_html)
 
 	minified = add_gzip_compression(minified)
-
+	
+	fmt.Print("minifing index.html: " + strconv.Itoa(len(packed_html)) + " -> ")
 	fmt.Println(len(minified))
 
 	os.WriteFile("compiled.html", []byte(minified), 0644)
@@ -120,6 +142,29 @@ func do_min(mediatype string, text string) string {
 	}
 
 	return s
+}
+
+var css_map = make(map[string]string)
+
+func map_css(s *goquery.Selection) {
+	re := regexp.MustCompile("\\s+")
+
+	if attr, ex := s.Attr("class"); ex {
+		split := re.Split(attr, -1)
+		attr = ""
+		for _, classname := range split {
+			if _, ok := css_map[classname]; !ok {
+				css_map[classname] = "a" + strconv.FormatInt(int64(len(css_map)), 36)
+			}
+
+			attr += css_map[classname] + " "
+		}
+		s.SetAttr("class", strings.Trim(attr, " "))
+	}
+
+	s.Children().Each(func(i int, a *goquery.Selection) {
+		map_css(a)
+	})
 }
 
 func add_gzip_compression(text string) string {

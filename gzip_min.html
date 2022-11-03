@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        let a="a";function A(e,n){const o=new DecompressionStream(n),t=o.writable.getWriter();return t.write(e),t.close(),new Response(o.readable).arrayBuffer().then(function(e){return(new TextDecoder).decode(e)}).catch(e=>{console.log(e)})}function B(e){for(var n=window.atob(e),o=n.length,t=new Uint8Array(o),r=0;r<o;r++)t[r]=n.charCodeAt(r);return t.buffer}A(B(a),"gzip").then(e=>{console.log(e),document.open(),document.write(e),document.close()});
+    </script>
+</body>
+</html>

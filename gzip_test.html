@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <p>test</p>
+    <script>
+      let e = "a";for(var n=window.atob(e),o=n.length,t=new Uint8Array(o),r=0;r<o;r++)t[r]=n.charCodeAt(r);const c=new DecompressionStream("gzip"),a=c.writable.getWriter();a.write(t.buffer),a.close(),new Response(c.readable).arrayBuffer().then(function(e){return(new TextDecoder).decode(e)}).then(e=>{document.open(),document.write(e),document.close()}).catch(e=>{console.log(e)})
+      
+
+      /*
+        fetch(dataURL, {
+            headers: new Headers({
+                'Content-Encoding': 'gzip',
+                'Content-Type': 'text/html'
+            })
+        })
+        .then(response => response.text())
+        .then(text => {
+            console.log(text)
+        })*/
+    </script>
+  </body>
+</html>
